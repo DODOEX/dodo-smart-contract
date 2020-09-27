@@ -44,6 +44,22 @@ contract Pricing is Storage {
         return targetQuoteTokenAmount.sub(Q2);
     }
 
+    function _ROneSellQuoteToken(uint256 amount, uint256 targetBaseTokenAmount)
+        internal
+        view
+        returns (uint256 receiveBaseToken)
+    {
+        uint256 i = DecimalMath.divFloor(DecimalMath.ONE, getOraclePrice());
+        uint256 B2 = DODOMath._SolveQuadraticFunctionForTrade(
+            targetBaseTokenAmount,
+            targetBaseTokenAmount,
+            DecimalMath.mul(i, amount),
+            false,
+            _K_
+        );
+        return targetBaseTokenAmount.sub(B2);
+    }
+
     function _ROneBuyBaseToken(uint256 amount, uint256 targetBaseTokenAmount)
         internal
         view
@@ -55,13 +71,46 @@ contract Pricing is Storage {
         return payQuoteToken;
     }
 
+    function _ROneBuyQuoteToken(uint256 amount, uint256 targetQuoteTokenAmount)
+        internal
+        view
+        returns (uint256 payBaseToken)
+    {
+        require(amount < targetQuoteTokenAmount, "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+        uint256 Q2 = targetQuoteTokenAmount.sub(amount);
+        payBaseToken = _RBelowIntegrate(targetQuoteTokenAmount, targetQuoteTokenAmount, Q2);
+        return payBaseToken;
+    }
+
     // ============ R < 1 cases ============
+
+    function _RBelowBuyQuoteToken(
+        uint256 amount,
+        uint256 quoteBalance,
+        uint256 targetQuoteAmount
+    ) internal view returns (uint256 payBaseToken) {
+        require(amount < quoteBalance, "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+        uint256 Q2 = quoteBalance.sub(amount);
+        return _RBelowIntegrate(targetQuoteAmount, quoteBalance, Q2);
+    }
+
+    function _RBelowSellQuoteToken(
+        uint256 amount,
+        uint256 quoteBalance,
+        uint256 targetQuoteAmount
+    ) internal view returns (uint256 receiveBaseToken) {
+        // here we don't require Q1 <= targetQuoteAmount
+        // Because it is limited at upper function
+        // See Trader.querySellQuoteToken
+        uint256 Q1 = quoteBalance.add(amount);
+        return _RAboveIntegrate(targetQuoteAmount, Q1, quoteBalance);
+    }
 
     function _RBelowSellBaseToken(
         uint256 amount,
         uint256 quoteBalance,
         uint256 targetQuoteAmount
-    ) internal view returns (uint256 receieQuoteToken) {
+    ) internal view returns (uint256 receiveQuoteToken) {
         uint256 i = getOraclePrice();
         uint256 Q2 = DODOMath._SolveQuadraticFunctionForTrade(
             targetQuoteAmount,
@@ -129,6 +178,41 @@ contract Pricing is Storage {
         return _RAboveIntegrate(targetBaseAmount, B1, baseBalance);
     }
 
+    function _RAboveSellQuoteToken(
+        uint256 amount,
+        uint256 baseBalance,
+        uint256 targetBaseAmount
+    ) internal view returns (uint256 receiveBaseToken) {
+        uint256 i = DecimalMath.divFloor(DecimalMath.ONE, getOraclePrice());
+        uint256 B2 = DODOMath._SolveQuadraticFunctionForTrade(
+            targetBaseAmount,
+            baseBalance,
+            DecimalMath.mul(i, amount),
+            false,
+            _K_
+        );
+        return baseBalance.sub(B2);
+    }
+
+    function _RAboveBuyQuoteToken(
+        uint256 amount,
+        uint256 baseBalance,
+        uint256 targetBaseAmount
+    ) internal view returns (uint256 payBaseToken) {
+        // Here we don't require amount less than some value
+        // Because it is limited at upper function
+        // See Trader.queryBuyBaseToken
+        uint256 i = DecimalMath.divFloor(DecimalMath.ONE, getOraclePrice());
+        uint256 Q2 = DODOMath._SolveQuadraticFunctionForTrade(
+            targetBaseAmount,
+            baseBalance,
+            DecimalMath.mulCeil(i, amount),
+            true,
+            _K_
+        );
+        return Q2.sub(baseBalance);
+    }
+
     function _RAboveBackToOne() internal view returns (uint256 payBaseToken) {
         // important: carefully design the system to make sure spareBase always greater than or equal to 0
         uint256 spareQuote = _QUOTE_BALANCE_.sub(_TARGET_QUOTE_TOKEN_AMOUNT_);
@@ -186,13 +270,13 @@ contract Pricing is Storage {
         return DODOMath._GeneralIntegrate(B0, B1, B2, i, _K_);
     }
 
-    // function _RBelowIntegrate(
-    //     uint256 Q0,
-    //     uint256 Q1,
-    //     uint256 Q2
-    // ) internal view returns (uint256) {
-    //     uint256 i = getOraclePrice();
-    //     i = DecimalMath.divFloor(DecimalMath.ONE, i); // 1/i
-    //     return DODOMath._GeneralIntegrate(Q0, Q1, Q2, i, _K_);
-    // }
+    function _RBelowIntegrate(
+        uint256 Q0,
+        uint256 Q1,
+        uint256 Q2
+    ) internal view returns (uint256) {
+        uint256 i = getOraclePrice();
+        i = DecimalMath.divFloor(DecimalMath.ONE, i); // 1/i
+        return DODOMath._GeneralIntegrate(Q0, Q1, Q2, i, _K_);
+    }
 }
