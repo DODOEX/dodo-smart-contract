@@ -57,7 +57,7 @@ contract DODO is Admin, Trader, LiquidityProvider {
         // Advanced controls are disabled by default
         _BUYING_ALLOWED_ = true;
         _SELLING_ALLOWED_ = true;
-        uint256 MAX_INT = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint256 MAX_INT = uint256(-1);
         _BASE_BALANCE_LIMIT_ = MAX_INT;
         _QUOTE_BALANCE_LIMIT_ = MAX_INT;
 
