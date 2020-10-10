@@ -6,15 +6,20 @@
 */
 
 import * as assert from 'assert';
+import BigNumber from 'bignumber.js';
+import { Contract } from 'web3-eth-contract';
 
 import { DODOContext, getDODOContext } from './utils/Context';
+import { DODO_SELL_HELPER, newContract } from './utils/Contracts';
 import { decimalStr } from './utils/Converter';
 import { logGas } from './utils/Log';
 
 let lp: string;
 let trader: string;
+let SellHelper: Contract
 
 async function init(ctx: DODOContext): Promise<void> {
+  SellHelper = await newContract(DODO_SELL_HELPER)
   await ctx.setOraclePrice(decimalStr("100"));
 
   lp = ctx.spareAccounts[0];
@@ -425,6 +430,49 @@ describe("Trader", () => {
       );
     });
   });
+
+  describe("Sell helper", () => {
+    it("ROne Case", async () => {
+      var buyBaseAmount = await SellHelper.methods.querySellQuoteToken(ctx.DODO.options.address, decimalStr("500")).call()
+      await ctx.DODO.methods.buyBaseToken(buyBaseAmount, decimalStr("2000"), "0x").send(ctx.sendParam(trader))
+      assert.equal(
+        await ctx.BASE.methods.balanceOf(trader).call(),
+        "14592775045696594056"
+      );
+      assert.equal(
+        await ctx.QUOTE.methods.balanceOf(trader).call(),
+        "500000000000000000356"
+      );
+    })
+
+    it("RAboveOne Case", async () => {
+      await ctx.DODO.methods.buyBaseToken(decimalStr("5"), decimalStr("1000"), "0x").send(ctx.sendParam(trader))
+      var buyBaseAmount = await SellHelper.methods.querySellQuoteToken(ctx.DODO.options.address, decimalStr("100")).call()
+      await ctx.DODO.methods.buyBaseToken(buyBaseAmount, decimalStr("2000"), "0x").send(ctx.sendParam(trader))
+      assert.equal(
+        await ctx.BASE.methods.balanceOf(trader).call(),
+        "15727536696471495631"
+      );
+      assert.equal(
+        await ctx.QUOTE.methods.balanceOf(trader).call(),
+        "348048194583751254080"
+      );
+    })
+
+    it.only("RBelowOne Case", async () => {
+      await ctx.DODO.methods.sellBaseToken(decimalStr("5"), decimalStr("0"), "0x").send(ctx.sendParam(trader))
+      var buyBaseAmount1 = await SellHelper.methods.querySellQuoteToken(ctx.DODO.options.address, decimalStr("100")).call()
+      var quoteBalance1 = await ctx.QUOTE.methods.balanceOf(trader).call()
+      await ctx.DODO.methods.buyBaseToken(buyBaseAmount1, decimalStr("2000"), "0x").send(ctx.sendParam(trader))
+      var quoteBalance2 = await ctx.QUOTE.methods.balanceOf(trader).call()
+      assert.equal(new BigNumber(quoteBalance1).minus(quoteBalance2).toString(), "99999999999999999795")
+
+      var buyBaseAmount2 = await SellHelper.methods.querySellQuoteToken(ctx.DODO.options.address, decimalStr("1000")).call()
+      await ctx.DODO.methods.buyBaseToken(buyBaseAmount2, decimalStr("2000"), "0x").send(ctx.sendParam(trader))
+      var quoteBalance3 = await ctx.QUOTE.methods.balanceOf(trader).call()
+      assert.equal(new BigNumber(quoteBalance2).minus(quoteBalance3).toString(), "999999999999999999442")
+    })
+  })
 
   describe("Corner cases", () => {
     it("buy or sell 0", async () => {

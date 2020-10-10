@@ -8,6 +8,7 @@
 pragma solidity 0.6.9;
 pragma experimental ABIEncoderV2;
 
+
 interface IDODO {
     function init(
         address owner,
@@ -61,4 +62,20 @@ interface IDODO {
     function _BASE_TOKEN_() external returns (address);
 
     function _QUOTE_TOKEN_() external returns (address);
+
+    function _R_STATUS_() external view returns (uint8);
+
+    function _QUOTE_BALANCE_() external view returns (uint256);
+
+    function _BASE_BALANCE_() external view returns (uint256);
+
+    function _K_() external view returns (uint256);
+
+    function _MT_FEE_RATE_() external view returns (uint256);
+
+    function _LP_FEE_RATE_() external view returns (uint256);
+
+    function getExpectedTarget() external view returns (uint256 baseTarget, uint256 quoteTarget);
+
+    function getOraclePrice() external view returns (uint256);
 }
