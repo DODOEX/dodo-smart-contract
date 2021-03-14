@@ -31,6 +31,9 @@ contract DVM is DVMTrader, DVMFunding {
         uint256 k,
         bool isOpenTWAP
     ) external {
+        require(!_DVM_INITIALIZED_, "DVM_INITIALIZED");
+        _DVM_INITIALIZED_ = true;
+        
         require(baseTokenAddress != quoteTokenAddress, "BASE_QUOTE_CAN_NOT_BE_SAME");
         _BASE_TOKEN_ = IERC20(baseTokenAddress);
         _QUOTE_TOKEN_ = IERC20(quoteTokenAddress);
@@ -88,6 +91,6 @@ contract DVM is DVMTrader, DVMFunding {
     // ============ Version Control ============
     
     function version() external pure returns (string memory) {
-        return "DVM 1.0.0";
+        return "DVM 1.0.2";
     }
 }
