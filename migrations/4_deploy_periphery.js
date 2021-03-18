@@ -5,6 +5,8 @@ let logger = new console.Console(file, file);
 const { GetConfig } = require("../configAdapter.js")
 
 const DODORecharge = artifacts.require("DODORecharge");
+const DvmTemplate = artifacts.require("DVM");
+const CpTemplate = artifacts.require("CP");
 const vDODOToken = artifacts.require("vDODOToken");
 const DODOCirculationHelper = artifacts.require("DODOCirculationHelper");
 const DODOMine = artifacts.require("DODOMine");
@@ -12,6 +14,8 @@ const FeeRateImpl = artifacts.require("FeeRateImpl");
 const WETH9 = artifacts.require("WETH9");
 const DODOToken = artifacts.require("DODOToken");
 const UpCrowdPoolingFactory = artifacts.require("UpCrowdPoolingFactory");
+const CpFactory = artifacts.require("CrowdPoolingFactory");
+const MultiCall = artifacts.require("Multicall");
 
 module.exports = async (deployer, network, accounts) => {
     let CONFIG = GetConfig(network, accounts)
@@ -30,6 +34,7 @@ module.exports = async (deployer, network, accounts) => {
     let DefaultPermissionAddress = CONFIG.PermissionManager;
     let CpTemplateAddress = CONFIG.CP;
     let DvmFactoryAddress = CONFIG.DVMFactory;
+    let DvmTemplateAddress = CONFIG.DVM;
 
     let multiSigAddress = CONFIG.multiSigAddress;
     let defaultMaintainer = CONFIG.defaultMaintainer;
@@ -52,6 +57,44 @@ module.exports = async (deployer, network, accounts) => {
         const UpCpFactoryInstance = await UpCrowdPoolingFactory.at(UpCrowdPoolingFactory.address);
         var tx = await UpCpFactoryInstance.initOwner(multiSigAddress);
         logger.log("Init UpCpFactory Tx:", tx.tx);
+    }
+
+    if (deploySwitch.MultiCall) {
+        await deployer.deploy(MultiCall);
+        MultiCallAddress = MultiCall.address;
+        logger.log("MultiCallAddress: ", MultiCallAddress);
+    }
+
+    if (deploySwitch.CPFactory) {
+        logger.log("====================================================");
+        logger.log("network type: " + network);
+        logger.log("Deploy time: " + new Date().toLocaleString());
+        logger.log("Deploy type: CrowdPoolingFactory");
+        await deployer.deploy(
+            CpFactory,
+            CloneFactoryAddress,
+            CpTemplateAddress,
+            DvmFactoryAddress,
+            defaultMaintainer,
+            DefaultMtFeeRateAddress,
+            DefaultPermissionAddress
+        );
+        logger.log("CrowdPoolingFactory address: ", CpFactory.address);
+        const cpFactoryInstance = await CpFactory.at(CpFactory.address);
+        var tx = await cpFactoryInstance.initOwner(multiSigAddress);
+        logger.log("Init CpFactory Tx:", tx.tx);
+    }
+
+    if (deploySwitch.DVM) {
+        await deployer.deploy(DvmTemplate);
+        DvmTemplateAddress = DvmTemplate.address;
+        logger.log("DvmTemplateAddress: ", DvmTemplateAddress);
+    }
+
+    if (deploySwitch.CP) {
+        await deployer.deploy(CpTemplate);
+        CpTemplateAddress = CpTemplate.address;
+        logger.log("CpTemplateAddress: ", CpTemplateAddress);
     }
 
     if (deploySwitch.FEERATEIMPL) {

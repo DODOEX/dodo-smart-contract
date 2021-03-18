@@ -48,7 +48,7 @@ export class ProxyContext {
 
   constructor() { }
 
-  async init(weth:string) {
+  async init(weth: string) {
     this.EVM = new EVM();
     this.Web3 = getDefaultWeb3();
     const allAccounts = await this.Web3.eth.getAccounts();
@@ -89,7 +89,7 @@ export class ProxyContext {
         dvmTemplate.options.address,
         this.Deployer,
         mtFeeRateModelTemplate.options.address
-       ]
+      ]
     )
 
     this.DODOApprove = await contracts.newContract(
@@ -101,7 +101,7 @@ export class ProxyContext {
       [this.DODOApprove.options.address]
     )
 
-    //DODO Incentive
+    //DODO Incentive (ETH)
     this.DODOIncentive = await contracts.newContract(
       contracts.DODO_INCENTIVE,
       [this.DODO.options.address]
@@ -126,14 +126,14 @@ export class ProxyContext {
         this.Deployer,
         mtFeeRateModelTemplate.options.address,
         permissionManagerTemplate.options.address
-      ]  
+      ]
     )
 
     this.DODOSellHelper = await contracts.newContract(
       contracts.DODO_SELL_HELPER
     );
 
-
+    //ETH proxy
     this.DODOProxyV2 = await contracts.newContract(contracts.DODO_PROXY_NAME,
       [
         this.DVMFactory.options.address,
@@ -148,9 +148,12 @@ export class ProxyContext {
     );
 
     await this.DODOProxyV2.methods.initOwner(this.Deployer).send(this.sendParam(this.Deployer));
-    await this.DODOApprove.methods.init(this.Deployer,this.DODOApproveProxy.options.address).send(this.sendParam(this.Deployer));
+
+
+    await this.DODOApprove.methods.init(this.Deployer, this.DODOApproveProxy.options.address).send(this.sendParam(this.Deployer));
     await this.DODOApproveProxy.methods.init(this.Deployer, [this.DODOProxyV2.options.address]).send(this.sendParam(this.Deployer));
 
+    //DODOIncentive ETH
     await this.DODOIncentive.methods.initOwner(this.Deployer).send(this.sendParam(this.Deployer));
     await this.DODOIncentive.methods.changeDODOProxy(this.DODOProxyV2.options.address).send(this.sendParam(this.Deployer));
 
@@ -191,7 +194,7 @@ export class ProxyContext {
   }
 }
 
-export async function getProxyContext(weth:string): Promise<ProxyContext> {
+export async function getProxyContext(weth: string): Promise<ProxyContext> {
   var context = new ProxyContext();
   await context.init(weth);
   return context;

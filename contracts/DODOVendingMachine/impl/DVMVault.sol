@@ -35,7 +35,11 @@ contract DVMVault is DVMStorage {
         quoteReserve = _QUOTE_RESERVE_;
     }
 
-    function getUserFeeRate(address user) external view returns (uint256 lpFeeRate, uint256 mtFeeRate) {
+    function getUserFeeRate(address user)
+        external
+        view
+        returns (uint256 lpFeeRate, uint256 mtFeeRate)
+    {
         lpFeeRate = _LP_FEE_RATE_;
         mtFeeRate = _MT_FEE_RATE_MODEL_.getFeeRate(user);
     }
@@ -51,7 +55,7 @@ contract DVMVault is DVMStorage {
     }
 
     // ============ TWAP UPDATE ===========
-    
+
     function _twapUpdate() internal {
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         uint32 timeElapsed = blockTimestamp - _BLOCK_TIMESTAMP_LAST_;
@@ -68,7 +72,7 @@ contract DVMVault is DVMStorage {
         _BASE_RESERVE_ = uint112(baseReserve);
         _QUOTE_RESERVE_ = uint112(quoteReserve);
 
-        if(_IS_OPEN_TWAP_) _twapUpdate();
+        if (_IS_OPEN_TWAP_) _twapUpdate();
     }
 
     function _sync() internal {
@@ -82,9 +86,8 @@ contract DVMVault is DVMStorage {
             _QUOTE_RESERVE_ = uint112(quoteBalance);
         }
 
-        if(_IS_OPEN_TWAP_) _twapUpdate();
+        if (_IS_OPEN_TWAP_) _twapUpdate();
     }
-
 
     function sync() external preventReentrant {
         _sync();
@@ -180,7 +183,7 @@ contract DVMVault is DVMStorage {
     }
 
     function _mint(address user, uint256 value) internal {
-        require(value > 0, "MINT_INVALID");
+        require(value > 1000, "MINT_INVALID");
         _SHARES_[user] = _SHARES_[user].add(value);
         totalSupply = totalSupply.add(value);
         emit Mint(user, value);
@@ -195,7 +198,7 @@ contract DVMVault is DVMStorage {
     }
 
     // ============================ Permit ======================================
-    
+
     function permit(
         address owner,
         address spender,
@@ -206,15 +209,23 @@ contract DVMVault is DVMStorage {
         bytes32 s
     ) external {
         require(deadline >= block.timestamp, "DODO_DVM_LP: EXPIRED");
-        bytes32 digest = keccak256(
-            abi.encodePacked(
-                "\x19\x01",
-                DOMAIN_SEPARATOR,
-                keccak256(
-                    abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline)
+        bytes32 digest =
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    DOMAIN_SEPARATOR,
+                    keccak256(
+                        abi.encode(
+                            PERMIT_TYPEHASH,
+                            owner,
+                            spender,
+                            value,
+                            nonces[owner]++,
+                            deadline
+                        )
+                    )
                 )
-            )
-        );
+            );
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(
             recoveredAddress != address(0) && recoveredAddress == owner,
