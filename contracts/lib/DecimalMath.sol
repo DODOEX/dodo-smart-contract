@@ -19,17 +19,30 @@ import {SafeMath} from "./SafeMath.sol";
 library DecimalMath {
     using SafeMath for uint256;
 
-    uint256 constant ONE = 10**18;
+    uint256 internal constant ONE = 10**18;
+    uint256 internal constant ONE2 = 10**36;
 
-    function mul(uint256 target, uint256 d) internal pure returns (uint256) {
-        return target.mul(d) / ONE;
+    function mulFloor(uint256 target, uint256 d) internal pure returns (uint256) {
+        return target.mul(d) / (10**18);
+    }
+
+    function mulCeil(uint256 target, uint256 d) internal pure returns (uint256) {
+        return target.mul(d).divCeil(10**18);
     }
 
     function divFloor(uint256 target, uint256 d) internal pure returns (uint256) {
-        return target.mul(ONE).div(d);
+        return target.mul(10**18).div(d);
     }
 
     function divCeil(uint256 target, uint256 d) internal pure returns (uint256) {
-        return target.mul(ONE).divCeil(d);
+        return target.mul(10**18).divCeil(d);
+    }
+
+    function reciprocalFloor(uint256 target) internal pure returns (uint256) {
+        return uint256(10**36).div(target);
+    }
+
+    function reciprocalCeil(uint256 target) internal pure returns (uint256) {
+        return uint256(10**36).divCeil(target);
     }
 }

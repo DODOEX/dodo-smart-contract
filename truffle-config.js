@@ -18,8 +18,9 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
+var HDWalletProvider = require("truffle-hdwallet-provider");
+var privKey = process.env.privKey;
+var infuraId = process.env.infuraId;
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
@@ -36,6 +37,24 @@ module.exports = {
    *
    * $ truffle test --network <network-name>
    */
+  deploySwitch: {
+    DEPLOY_V1:          false,
+    DEPLOY_V2:          false,
+    ADAPTER:            false,
+    MOCK_TOKEN:         false,
+    MOCK_V2_POOL:       false,
+    vDODOToken:         false,
+    DODORecharge:       false,
+    MINE:               false,
+    FEERATEIMPL:        false,
+    WETH:               false,
+    DODO:               false,
+    UpCP:               false,
+    DVM:                false,
+    CP:                 false,
+    CPFactory:          false,
+    MultiCall:          true
+  },
 
   networks: {
     // Useful for testing. The `development` name is special - truffle uses it by default
@@ -48,9 +67,64 @@ module.exports = {
       host: "127.0.0.1",
       port: 8545,
       network_id: 5777,
-      gas: 0xfffffffffff,
+      gas: 1000000000,
       gasPrice: 1,
     },
+    
+    kovan: {
+      networkCheckTimeout: 100000,
+      provider: function () {
+        return new HDWalletProvider(privKey, "https://kovan.infura.io/v3/" + infuraId);
+      },
+      gas: 12000000,
+      gasPrice: 1000000000,
+      network_id: 42,
+      skipDryRun: true
+    },
+
+    live: {
+      networkCheckTimeout: 100000,
+      provider: function () {
+        return new HDWalletProvider(privKey, "https://mainnet.infura.io/v3/" + infuraId);
+      },
+      gas: 6000000,
+      gasPrice: 200000000000,
+      network_id: 1,
+      skipDryRun: true
+    },
+    
+    bsclive: {
+      provider: function () {
+        return new HDWalletProvider(privKey, "https://bsc-dataseed1.binance.org");
+      },
+      network_id: 56,
+      confirmations: 10,
+      timeoutBlocks: 200,
+      skipDryRun: true
+    },
+    
+    heco: {
+      provider: function () {
+        return new HDWalletProvider(privKey, "https://http-mainnet.hecochain.com");
+      },
+      gasPrice: 1500000000,
+      network_id: 128
+    },
+    
+    mbtestnet: {
+      provider: () => {
+        return new HDWalletProvider(privKey, 'https://moonbeam-rpc.dodoex.io');
+      },
+      network_id: 1281,
+    },
+    
+    mbdev: {
+      provider: () => {
+        return new HDWalletProvider(privKey, 'http://localhost:9933/')
+      },
+      network_id: 1281,
+    },
+
     coverage: {
       host: "127.0.0.1",
       port: 6545,

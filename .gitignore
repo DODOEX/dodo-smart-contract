@@ -4,6 +4,7 @@
 .idea
 
 build/
+build-v1/
 dist/
 node_modules/
 coverage/
@@ -15,3 +16,11 @@ flattered/
 *.swo
 *.swp
 
+
+node_modules
+
+#Hardhat files
+cache
+artifacts
+
+error-v1.5-stat.txt

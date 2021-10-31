@@ -10,42 +10,46 @@ if (process.env["COVERAGE"]) {
   jsonPath = "../../.coverage_artifacts/contracts/"
 }
 
-const CloneFactory = require(`${jsonPath}CloneFactory.json`)
-const DODO = require(`${jsonPath}DODO.json`)
-const DODOZoo = require(`${jsonPath}DODOZoo.json`)
-const DODOEthProxy = require(`${jsonPath}DODOEthProxy.json`)
-const WETH = require(`${jsonPath}WETH9.json`)
-const TestERC20 = require(`${jsonPath}TestERC20.json`)
-const NaiveOracle = require(`${jsonPath}NaiveOracle.json`)
-const DODOLpToken = require(`${jsonPath}DODOLpToken.json`)
-const Uniswap = require(`${jsonPath}UniswapV2Pair.json`)
-const UniswapArbitrageur = require(`${jsonPath}UniswapArbitrageur.json`)
-
 import { getDefaultWeb3 } from './EVM';
 import { Contract } from 'web3-eth-contract';
 
 export const CLONE_FACTORY_CONTRACT_NAME = "CloneFactory"
 export const DODO_CONTRACT_NAME = "DODO"
-export const TEST_ERC20_CONTRACT_NAME = "TestERC20"
+export const MINTABLE_ERC20_CONTRACT_NAME = "MintableERC20"
 export const NAIVE_ORACLE_CONTRACT_NAME = "NaiveOracle"
 export const DODO_LP_TOKEN_CONTRACT_NAME = "DODOLpToken"
 export const DODO_ZOO_CONTRACT_NAME = "DOOZoo"
+export const DODO_WILD_CONTRACT_NAME = "DOOWild"
 export const DODO_ETH_PROXY_CONTRACT_NAME = "DODOEthProxy"
-export const WETH_CONTRACT_NAME = "WETH"
+export const WETH_CONTRACT_NAME = "WETH9"
 export const UNISWAP_CONTRACT_NAME = "Uniswap"
 export const UNISWAP_ARBITRAGEUR_CONTRACT_NAME = "UniswapArbitrageur"
-
-var contractMap: { [name: string]: any } = {}
-contractMap[CLONE_FACTORY_CONTRACT_NAME] = CloneFactory
-contractMap[DODO_CONTRACT_NAME] = DODO
-contractMap[TEST_ERC20_CONTRACT_NAME] = TestERC20
-contractMap[NAIVE_ORACLE_CONTRACT_NAME] = NaiveOracle
-contractMap[DODO_LP_TOKEN_CONTRACT_NAME] = DODOLpToken
-contractMap[DODO_ZOO_CONTRACT_NAME] = DODOZoo
-contractMap[DODO_ETH_PROXY_CONTRACT_NAME] = DODOEthProxy
-contractMap[WETH_CONTRACT_NAME] = WETH
-contractMap[UNISWAP_CONTRACT_NAME] = Uniswap
-contractMap[UNISWAP_ARBITRAGEUR_CONTRACT_NAME] = UniswapArbitrageur
+export const DODO_TOKEN_CONTRACT_NAME = "DODOToken"
+export const LOCKED_TOKEN_VAULT_CONTRACT_NAME = "LockedTokenVault"
+export const DODO_MINE_NAME = "DODOMine"
+export const DODO_MINE_READER_NAME = "DODOMineReader"
+export const DVM_VAULT_NAME = "DVMVault"
+export const DVM_NAME = "DVM"
+export const DVM_FACTORY_NAME = "DVMFactory"
+export const DVM_PROXY_NAME = "DVMProxy"
+export const CONST_FEE_RATE_MODEL_NAME = "ConstFeeRateModel"
+export const PERMISSION_MANAGER_NAME = "PermissionManager"
+export const EXTERNAL_VALUE_NAME = "ExternalValue"
+export const FEE_RATE_MODEL_NAME = "FeeRateModel"
+export const DPP_NAME = "DPP"
+export const DPP_FACTORY_NAME = "DPPFactory"
+export const SMART_APPROVE = "DODOApprove"
+export const SMART_APPROVE_PROXY = "DODOApproveProxy"
+export const DODO_SELL_HELPER = "DODOSellHelper"
+export const DPP_ADMIN_NAME = "DPPAdmin"
+export const DODO_CALLEE_HELPER_NAME = "DODOCalleeHelper"
+export const CROWD_POOLING_NAME = "CP"
+export const CROWD_POOLING_FACTORY = "CrowdPoolingFactory"
+export const DODO_INCENTIVE = "DODOIncentive"
+export const VDODO_NAME = "vDODOToken"
+export const DODO_CULATION_HELPER = "DODOCirculationHelper"
+export const DODO_GOVERNANCE = "Governance"
+export const DODO_PROXY_NAME = "DODOV2Proxy02"
 
 interface ContractJson {
   abi: any;
@@ -54,7 +58,7 @@ interface ContractJson {
 }
 
 export function getContractJSON(contractName: string): ContractJson {
-  var info = contractMap[contractName]
+  var info = require(`${jsonPath}${contractName}.json`)
   return {
     abi: info.abi,
     networks: info.networks,
